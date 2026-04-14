@@ -3,6 +3,7 @@ module Cool2Poor # (
 	parameter ENABLE_MAPPER_002 = 1,             // mapper #002 - UxROM
 	parameter ENABLE_MAPPER_003 = 1,             // mapper #003 - CNROM
 	parameter ENABLE_MAPPER_004 = 0,             // mapper #004 - MMC3
+	parameter ENABLE_MAPPER_005 = 0,             // mapper #005 - MMC5 (Castlevania 3 workaround)
 	parameter ENABLE_MAPPER_007 = 1,             // mapper #007 - AxROM
 	parameter ENABLE_MAPPER_009_010 = 1,         // mappers #009 - MMC2, #010 - MMC4
 	parameter ENABLE_MAPPER_011 = 1,             // mapper #011 - Color Dreams
@@ -127,6 +128,7 @@ wire [15:0] mul = mul1*mul2;
 // IRQ stuff
 assign irq = (
    mmc3_irq_out |
+   mmc5_irq_out |
    mapper18_irq_out |
    mapper65_irq_out |
    vrc4_irq_out |
@@ -151,6 +153,11 @@ reg [1:0] ppu_nt_read_count;        // nametable read counter
 reg [7:0] scanline = 0;             // current scanline
 reg new_screen = 0;                 // stores 1 when v-blank detected ("in frame" flag)
 reg new_screen_clear = 0;           // flag to clear new_screen flag
+// for MMC5 scanline-based interrupts, counts dummy PPU reads
+reg mmc5_irq_enabled = 0;           // register to enable/disable counter
+reg [7:0] mmc5_irq_line = 0;        // scanline on which IRQ will be triggered
+reg mmc5_irq_ack = 0;               // flag to acknowledge IRQ
+reg mmc5_irq_out = 0;               // stores 1 when IRQ is triggered
 // for mapper #18
 reg [15:0] mapper18_irq_value = 0;  // counter itself (downcounting)
 reg [3:0] mapper18_irq_control = 0; // IRQ settings
@@ -268,6 +275,8 @@ assign {cpu_data_out_enabled, cpu_data_out} =
                   {1'b1, mapper163_r2 | mapper163_r0 | mapper163_r1 | ~mapper163_r3} :
             (ENABLE_MAPPER_163 && (mapper == 6'b000110) && ({cpu_addr_in[14:12],cpu_addr_in[10:8]} == 6'b101101)) ?
                   {1'b1, mapper163_r5[0] ? mapper163_r2 : mapper163_r1} :
+            (ENABLE_MAPPER_005 && (mapper == 6'b001111) && (cpu_addr_in[14:0] == 15'h5204)) ?
+                  {1'b1, mmc5_irq_out, ~new_screen, 6'b000000} :
             (ENABLE_MAPPER_036 && mapper == 6'b011101 && {cpu_addr_in[14:13], cpu_addr_in[8]} == 3'b101) ? // Need by Strike Wolf, being simplified mapper, this cart still uses some TCX mapper features andrely on it
                   {1'b1, 2'b00, prg_bank_a[3:2], 4'b00} :
             (ENABLE_MAPPER_083 && mapper == 6'b100011 && {cpu_addr_in[14:12]} == 3'b101) ? // $5000 - DIP switches
@@ -546,6 +555,7 @@ begin
 
             // Disable IRQs
             mmc3_irq_enabled <= 0;
+            mmc5_irq_enabled <= 0;
             mapper18_irq_control <= 0;
             mapper65_irq_enabled <= 0;
             mapper69_irq_enabled <= 0;
@@ -557,6 +567,8 @@ begin
             mapper67_irq_enabled <= 0;
 
             // Acknowledge IRQs
+            mmc5_irq_ack <= 1;
+            mmc5_irq_out <= 0;
             mapper18_irq_out <= 0;
             mapper65_irq_out <= 0;
             vrc4_irq_out <= 0;
@@ -657,6 +669,48 @@ begin
                mul1 <= cpu_data_in;
             if (cpu_addr_in[14:0] == 15'h5801)
                mul2 <= cpu_data_in;
+         end
+
+         // MMC5
+         if (ENABLE_MAPPER_005 && (mapper == 6'b001111))
+         begin
+            // just workaround for Castlevania 3, not real MMC5
+            case (cpu_addr_in[14:0])
+               15'h5105: begin // mirroring
+                  // 0xFF enables four-screen on full MMC5; ignored here in this minimal workaround.
+                  if (cpu_data_in != 8'hFF)
+                  begin
+                     case ({cpu_data_in[4], cpu_data_in[2]})
+                        2'b00: mirroring <= 2'b10;
+                        2'b01: mirroring <= 2'b00;
+                        2'b10: mirroring <= 2'b01;
+                        2'b11: mirroring <= 2'b11;
+                     endcase
+                  end
+               end
+               15'h5115: begin
+                  prg_bank_a[4:0] <= {cpu_data_in[4:1], 1'b0};
+                  prg_bank_b[4:0] <= {cpu_data_in[4:1], 1'b1};
+               end
+               15'h5116: prg_bank_c[4:0] <= cpu_data_in[4:0];
+               15'h5117: prg_bank_d[4:0] <= cpu_data_in[4:0];
+               15'h5120: chr_bank_a[7:0] <= cpu_data_in[7:0];
+               15'h5121: chr_bank_b[7:0] <= cpu_data_in[7:0];
+               15'h5122: chr_bank_c[7:0] <= cpu_data_in[7:0];
+               15'h5123: chr_bank_d[7:0] <= cpu_data_in[7:0];
+               15'h5128: chr_bank_e[7:0] <= cpu_data_in[7:0];
+               15'h5129: chr_bank_f[7:0] <= cpu_data_in[7:0];
+               15'h512A: chr_bank_g[7:0] <= cpu_data_in[7:0];
+               15'h512B: chr_bank_h[7:0] <= cpu_data_in[7:0];
+               15'h5203: begin
+                  mmc5_irq_ack <= 1;
+                  mmc5_irq_line[7:0] <= cpu_data_in[7:0];
+               end
+               15'h5204: begin
+                  mmc5_irq_ack <= 1;
+                  mmc5_irq_enabled <= cpu_data_in[7];
+               end
+            endcase
          end
 
          // Mapper #189
@@ -1427,6 +1481,15 @@ begin
    begin
        mapper90_irq_out <= 0;
    end
+
+   // for MMC5
+   if (ENABLE_MAPPER_005 && (mapper == 6'b001111))
+   begin
+      if (romsel && (cpu_addr_in[14:0] == 15'h5204)) // write or read
+         mmc5_irq_ack <= 1;
+      if (mmc5_irq_ack && ~mmc5_irq_out)
+         mmc5_irq_ack <= 0;
+   end
 end
 
 // IRQ counter
@@ -1497,6 +1560,7 @@ end
 // Scanline counter
 always @ (negedge ppu_rd_in)
 begin
+   if (ENABLE_MAPPER_005 && (mapper == 6'b001111) && mmc5_irq_ack) mmc5_irq_out = 0;
    if (~new_screen && new_screen_clear) new_screen_clear = 0;
    if (new_screen & ~new_screen_clear)
    begin
@@ -1511,6 +1575,8 @@ begin
          ppu_nt_read_count <= ppu_nt_read_count + 1'b1;
       end else begin
          scanline = scanline + 1'b1;
+         if (ENABLE_MAPPER_005 && (mapper == 6'b001111) && mmc5_irq_enabled && (scanline == mmc5_irq_line + 1'b1))
+            mmc5_irq_out <= 1;
          if (scanline == 129)
             mapper_163_latch <= 1;
       end
