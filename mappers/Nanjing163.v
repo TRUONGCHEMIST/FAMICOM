@@ -94,7 +94,7 @@ assign {cpu_data_out_enabled, cpu_data_out} =
       (
          ((mapper == 0) && (cpu_addr_in[14:12] == 3'b101)) ? {8'b10000000, new_dendy} :
          (mapper == 6'b000110) && ({cpu_addr_in[14:12],cpu_addr_in[10:8]} == 6'b101001) ? {1'b1, mapper163_r2 | mapper163_r0 | mapper163_r1 | ~mapper163_r3} :
-         (mapper == 6'b000110) && ({cpu_addr_in[14:12],cpu_addr_in[10:8]} == 6'b101101) ? {1'b1, mapper163_r5[0] ? mapper163_r2 : mapper163_r1} :
+         (mapper == 6'b000110) && ({cpu_addr_in[14:12],cpu_addr_in[10:8]} == 6'b101101) ? {1'b1, (mapper163_r5[0] ? mapper163_r2 : mapper163_r1)} :
          9'b0
       ) : 9'b0
    ) : 9'b0;
@@ -125,10 +125,10 @@ wire [20:13] cpu_addr_mapped = (map_rom_on_6000 & romsel & m2) ? prg_bank_6000 :
    ) : ( // prg_mode[2]
       prg_mode[0] ? (
          // 0x1 - 0x4000(C) + 0x4000 (A)
-         {cpu_addr_in[14] ? prg_bank_a[7:1] : prg_bank_c[7:1], cpu_addr_in[13]}
+         {(cpu_addr_in[14] ? prg_bank_a[7:1] : prg_bank_c[7:1]), cpu_addr_in[13]}
       ) : ( // prg_mode[0]
          // 0x0 - 0x4000(A) + 0x4000 (С)
-         {cpu_addr_in[14] ? prg_bank_c[7:1] : prg_bank_a[7:1], cpu_addr_in[13]}
+         {(cpu_addr_in[14] ? prg_bank_c[7:1] : prg_bank_a[7:1]), cpu_addr_in[13]}
       )
    )
 );
@@ -143,16 +143,16 @@ wire [18:10] ppu_addr_mapped = (
                (ppu_addr_in[10] ? chr_bank_f : chr_bank_e)) : (ppu_addr_in[11] ? (ppu_addr_in[10] ? chr_bank_d : chr_bank_c) : (ppu_addr_in[10] ? chr_bank_b : chr_bank_a))
          ) : ( // chr_mode[0]
             // 110 - 0x800(A)+0x800(C)+0x800(E)+0x800(G)
-            {ppu_addr_in[12] ?
+            {(ppu_addr_in[12] ?
                (ppu_addr_in[11] ? chr_bank_g[8:1] : chr_bank_e[8:1]) :
-               (ppu_addr_in[11] ? chr_bank_c[8:1] : chr_bank_a[8:1]), ppu_addr_in[10]}
+               (ppu_addr_in[11] ? chr_bank_c[8:1] : chr_bank_a[8:1])), ppu_addr_in[10]}
          )
       ) : ( // chr_mode[1]
          // 100 - 0x1000(A) + 0x1000(E)
          // 101 - 0x1000(A/B) + 0x1000(E/F) - MMC2 and MMC4
-      {ppu_addr_in[12] ?
+      {(ppu_addr_in[12] ?
             (((0) && chr_mode[0] && ppu_latch1) ? chr_bank_f[8:2] : chr_bank_e[8:2]) :
-            (((0) && chr_mode[0] && ppu_latch0) ? chr_bank_b[8:2] : chr_bank_a[8:2]),
+            (((0) && chr_mode[0] && ppu_latch0) ? chr_bank_b[8:2] : chr_bank_a[8:2])),
          ppu_addr_in[11:10]}
       )
    ) : ( // chr_mode[2]
