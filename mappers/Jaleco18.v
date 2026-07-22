@@ -64,6 +64,9 @@ reg [1:0] mirroring = 0;
 reg lockout = 0;
 reg writed;
 
+wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
+wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
+wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
 // for mapper #18
 reg [15:0] mapper18_irq_value = 0;  // counter itself (downcounting)
 reg [3:0] mapper18_irq_control = 0; // IRQ settings
@@ -191,8 +194,6 @@ begin
       writed <= 1;
       if (romsel) // $0000-$7FFF
       begin
-         if ((cpu_addr_in[14:12] == 3'b101) && (lockout == 0)) // $5000-$5FFF
-         begin
          if ((cpu_addr_in[14:12] == 3'b101) && (lockout == 0)) // $5000-5FFF & lockout is off
          begin
             case (cpu_addr_in[2:0])
@@ -220,7 +221,6 @@ begin
                      if (0 && mapper == 6'b001110) prg_bank_b <= 1;
                   end
             endcase
-         end
 
       end else begin // $8000-$FFFF
 
