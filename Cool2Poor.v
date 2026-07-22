@@ -376,7 +376,7 @@ begin
 
    // IRQ for VRC4
    if (ENABLE_MAPPER_021_022_023_025 & ENABLE_VRC4_INTERRUPTS & (vrc4_irq_control[1]))
-   begin
+   begin : vrc4_irq_block
       reg carry;
       // Cycle mode without prescaler is not used by any games? It's missed in fceux source code.
       /*
@@ -431,7 +431,7 @@ begin
 
    // IRQ for Sunsoft FME-7
    if (ENABLE_MAPPER_069 & mapper69_counter_enabled)
-   begin
+   begin : mapper69_irq_block
       reg carry;
       {carry, mapper69_irq_value[15:0]} <= {1'b0, mapper69_irq_value[15:0]} - 1'b1;
       if (mapper69_irq_enabled && carry) mapper69_irq_out <= 1;
@@ -441,7 +441,7 @@ begin
    if (ENABLE_MAPPER_018)
    begin
       if (mapper18_irq_control[0])
-      begin
+      begin : mapper18_irq_block
          reg carry;
          {carry, mapper18_irq_value[3:0]} = mapper18_irq_value[3:0] - 1'b1;
          if (mapper18_irq_control[3] == 1'b0)
@@ -1523,7 +1523,7 @@ begin
       end
 
       if (mapper90_irq_enabled)
-      begin
+      begin : mapper90_irq_block
          reg carry;
          {carry, mapper90_irq_counter} = mapper90_irq_counter - 1'b1;
          mapper90_irq_pending = mapper90_irq_pending | carry;
