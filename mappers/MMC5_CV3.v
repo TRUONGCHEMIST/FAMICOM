@@ -67,6 +67,8 @@ reg writed;
 wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
 wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
 wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
+wire shift_chr_right = 1'b0;  // stub - VRC2/4 not in this config
+wire shift_chr_left  = 1'b0;  // stub - VRC2/4 not in this config
 // for MMC5 scanline-based interrupts, counts dummy PPU reads
 reg mmc5_irq_enabled = 0;           // register to enable/disable counter
 reg [7:0] mmc5_irq_line = 0;        // scanline on which IRQ will be triggered
@@ -307,7 +309,6 @@ begin
          scanline = scanline + 1'b1;
          if (1 && (mapper == 6'b001111) && mmc5_irq_enabled && (scanline == mmc5_irq_line + 1'b1))
             mmc5_irq_out <= 1;
-         if (scanline == 129)
       end
    end else begin
       ppu_nt_read_count <= 0;

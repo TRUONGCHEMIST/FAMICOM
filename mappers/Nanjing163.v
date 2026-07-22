@@ -66,6 +66,8 @@ reg writed;
 
 wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
 wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
+wire shift_chr_right = 1'b0;  // stub - VRC2/4 not in this config
+wire shift_chr_left  = 1'b0;  // stub - VRC2/4 not in this config
 reg mapper_163_latch = 0;
 reg [7:0] mapper163_r0 = 0;
 reg [7:0] mapper163_r1 = 0;

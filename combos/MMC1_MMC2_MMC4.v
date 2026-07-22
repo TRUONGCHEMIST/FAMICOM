@@ -65,6 +65,8 @@ reg lockout = 0;
 reg writed;
 
 wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
+wire shift_chr_right = 1'b0;  // stub - VRC2/4 not in this config
+wire shift_chr_left  = 1'b0;  // stub - VRC2/4 not in this config
 reg [5:0] mmc1_load_register = 0;
 
 // for MMC2/MMC4

@@ -67,6 +67,8 @@ reg writed;
 wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
 wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
 wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
+wire shift_chr_right = 1'b0;  // stub - VRC2/4 not in this config
+wire shift_chr_left  = 1'b0;  // stub - VRC2/4 not in this config
 // for mapper #18
 reg [15:0] mapper18_irq_value = 0;  // counter itself (downcounting)
 reg [3:0] mapper18_irq_control = 0; // IRQ settings

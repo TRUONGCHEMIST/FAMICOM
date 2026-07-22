@@ -67,6 +67,8 @@ reg writed;
 wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
 wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
 wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
+wire shift_chr_right = 1'b0;  // stub - VRC2/4 not in this config
+wire shift_chr_left  = 1'b0;  // stub - VRC2/4 not in this config
 assign irq = 1'bZ;
 
 wire cpu_data_out_enabled;

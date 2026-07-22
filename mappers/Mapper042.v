@@ -67,6 +67,8 @@ reg writed;
 wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
 wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
 wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
+wire shift_chr_right = 1'b0;  // stub - VRC2/4 not in this config
+wire shift_chr_left  = 1'b0;  // stub - VRC2/4 not in this config
 // for mapper #42 (only Baby Mario)
 reg mapper42_irq_enabled = 0;       // register to enable/disable counter
 reg [14:0] mapper42_irq_value = 0;  // counter itself (upcounting)
