@@ -64,6 +64,7 @@ reg [1:0] mirroring = 0;
 reg lockout = 0;
 reg writed;
 
+localparam UxROM_BITSIZE = 3;  // 3=256KB standard; change to 4 for 512KB hacks
 wire ppu_latch0 = 1'b0;  // stub - MMC2/4 not in this config
 wire ppu_latch1 = 1'b0;  // stub - MMC2/4 not in this config
 wire mapper_163_latch = 1'b0;  // stub - Nanjing #163 not in this config
